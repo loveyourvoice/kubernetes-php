@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: php-fpm
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate  # Стратегия для безболезненных обновлений
+  selector:
+    matchLabels:
+      app: php-fpm
+  template:
+    metadata:
+      labels:
+        app: php-fpm
+    spec:
+      initContainers:
+        - name: clone-repo
+          image: alpine/git
+          command:
+            - sh
+            - -c
+            - |
+              rm -rf /var/www/html/*  # Очистка перед клонированием
+              git clone https://github.com/dimitriytiho/kuber.git /var/www/html &&
+              chown -R 82:82 /var/www/html  # Права для пользователя www-data в PHP-FPM
+          volumeMounts:
+            - name: code-storage
+              mountPath: /var/www/html
+      containers:
+        - name: php-fpm
+          image: php:8.2-fpm
+          volumeMounts:
+            - name: code-storage
+              mountPath: /var/www/html
+      volumes:
+        - name: code-storage
+          persistentVolumeClaim:
+            claimName: code-pvc

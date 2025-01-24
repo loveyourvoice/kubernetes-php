@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: code-pvc
+spec:
+  accessModes:
+    - ReadWriteMany  # Требуется поддержка RWX (например, NFS)
+  resources:
+    requests:
+      storage: 1Gi
